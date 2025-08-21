@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Este é o nosso container de desenvolvimento, que substitui o "devcontainer"
+  develop:
+    # 1. "build": Aponta para o nosso Dockerfile de desenvolvimento
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+
+    # 2. Monta o código-fonte do projeto inteiro para dentro do container
+    volumes:
+      - .:/workspaces/Personal-Bank-Suite
+
+    # 3. "features: docker-in-docker": Replica o Docker-in-Docker
+    # Monta o soquete do Docker do seu Arch Linux para dentro do container
+    # Isso permite que você execute comandos `docker` de dentro do container `develop`.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    # 4. "forwardPorts": Replica o redirecionamento de portas
+    ports:
+      - "8080:8080" # ms-transactions
+      - "8081:8081" # ms-credit-cards
+      - "8082:8082" # ms-investments
+      - "5005:5005" # Porta de Debug Java
+
+    # 5. "remoteUser": Define o usuário dentro do container
+    user: vscode
+
+    # 6. Mantém o container rodando indefinidamente para podermos acessá-lo
+    # O comando `tail` é um truque comum para manter um container de serviço "vivo".
+    command: tail -f /dev/null
+
+    # Garante que este container suba na mesma rede que o Kafka
+    networks:
+      - default

@@ -1,0 +1,40 @@
+{
+	"name": "Personal Bank Suite",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	// "Features" são a maneira moderna de adicionar funcionalidades, como o Docker-in-Docker.
+	"features": {
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"version": "latest"
+		}
+	},
+	"customizations": {
+		"vscode": {
+			// Instala as extensões uma vez para todo o ambiente.
+			"extensions": [
+				"vscjava.vscode-java-pack",
+				"redhat.java",
+				"redhat.quarkus",
+				"ms-azuretools.vscode-docker"
+			]
+		}
+	},
+	// Redireciona as portas de TODOS os microsserviços e da infraestrutura.
+	"forwardPorts": [
+		8080, // ms-transactions
+		8081, // ms-credit-cards
+		8082, // ms-investments
+		9092, // Kafka
+		5005, // Porta de Debug Java (padrão)
+		5006,
+		5007
+	],
+	// Comando executado APÓS o container ser criado pela primeira vez.
+	// Baixa as dependências de todos os projetos para acelerar o primeiro build.
+	"postCreateCommand": "mvn -f ms-transactions/pom.xml dependency:go-offline && mvn -f ms-credit-cards/pom.xml dependency:go-offline && mvn -f ms-investments/pom.xml dependency:go-offline",
+	// Comando executado TODA VEZ que o container inicia.
+	// Sobe a infraestrutura (Kafka, etc.) automaticamente em background.
+	"postStartCommand": "docker-compose up -d",
+	"remoteUser": "vscode"
+}

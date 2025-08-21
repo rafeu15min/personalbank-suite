@@ -1,0 +1,7 @@
+# Este Dockerfile é para o seu AMBIENTE DE DESENVOLVIMENTO.
+# Ele instala o Java e ferramentas comuns.
+ARG VARIANT="21-bullseye"
+FROM mcr.microsoft.com/vscode/devcontainers/java:${VARIANT}
+
+# Opcional: Instale o Maven para ter mais controle, embora o template já inclua.
+# A imagem base 'devcontainers/java' já vem com SDKMAN!, Java e Maven.

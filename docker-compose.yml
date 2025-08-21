@@ -1,0 +1,30 @@
+# Versão do Docker Compose
+version: '3.8'
+
+# Definição dos containers que compõem nossa infraestrutura de desenvolvimento
+services:
+
+  # 1. Zookeeper: Necessário para o Kafka gerenciar seus brokers
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+
+  # 2. Kafka: O nosso sistema de mensageria (Pub/Sub)
+  kafka:
+    image: bitnami/kafka:latest
+    ports:
+      # Porta para os microsserviços se conectarem ao Kafka
+      - "9092:9092"
+    environment:
+      # Diz ao Kafka como se conectar ao Zookeeper
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      # Permite que aplicações rodando fora do Docker (no seu localhost) se conectem ao Kafka
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      # Permite conexões sem autenticação (ideal para ambiente de desenvolvimento)
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    # Garante que o Zookeeper seja iniciado ANTES do Kafka
+    depends_on:
+      - zookeeper
