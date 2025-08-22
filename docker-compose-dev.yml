@@ -15,7 +15,6 @@ services:
     # 3. "features: docker-in-docker": Replica o Docker-in-Docker
     # Monta o soquete do Docker do seu Arch Linux para dentro do container
     # Isso permite que você execute comandos `docker` de dentro do container `develop`.
-    volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 
     # 4. "forwardPorts": Replica o redirecionamento de portas
