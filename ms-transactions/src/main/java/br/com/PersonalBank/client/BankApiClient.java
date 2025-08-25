@@ -1,7 +1,7 @@
 package br.com.PersonalBank.client;
 
-import br.com.PersonalBank.dto.OpenFinanceResponse;
-import br.com.PersonalBank.dto.Transaction;
+import br.com.PersonalBank.common.dto.OpenFinanceResponse;
+import br.com.PersonalBank.dto.transaction.Transaction;
 import io.smallrye.mutiny.Uni; // Importação do Mutiny
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
