@@ -1,0 +1,107 @@
+# Open Finance Brasil - Dados de Configuração de API
+# Fonte: Diretório Oficial de Participantes (data.directory.openbankingbrasil.org.br/participants)
+# Data de Geração do Relatório: 25 de Agosto de 2025
+
+personalbank:
+  institutions:
+    NUBANK:
+      name: "Nubank"
+      organizationId: "2a6472c7-428a-4234-a84f-f273c00472b5"
+      api:
+        accounts:
+          url: "https://api.nubank.com.br/open-banking/accounts/v1"
+        credit-cards:
+          url: "https://api.nubank.com.br/open-banking/credit-cards-accounts/v1"
+        investments:
+          url: # Endpoint não listado
+
+    MERCADOPAGO:
+      name: "Mercado Pago"
+      organizationId: "35386556-6bba-429a-850d-0f92a088a228"
+      api:
+        accounts:
+          url: "https://api.mercadopago.com/open-banking/accounts/v1"
+        credit-cards:
+          url: # Endpoint não listado
+        investments:
+          url: # Endpoint não listado
+
+    INTER:
+      name: "Banco Inter"
+      organizationId: "d7e27a98-ef6c-4b79-b2d8-c2527eba8d84"
+      api:
+        accounts:
+          url: "https://api.openbanking.bancointer.com.br/open-banking/accounts/v2"
+        credit-cards:
+          url: "https://api.openbanking.bancointer.com.br/open-banking/credit-cards-accounts/v2"
+        investments:
+          url: "https://api.openbanking.bancointer.com.br/open-banking/investments/v1"
+
+    BRADESCO:
+      name: "Bradesco"
+      organizationId: "7c2cf557-3912-422b-8215-3a33d522c3c6"
+      api:
+        accounts:
+          url: "https://proxy.api.prebanco.com.br/bradesco/open-banking/accounts/v1"
+        credit-cards:
+          url: "https://proxy.api.prebanco.com.br/bradesco/open-banking/credit-cards-accounts/v1"
+        investments:
+          url: "https://proxy.api.prebanco.com.br/bradesco/open-banking/investments/v1"
+
+    ITAU:
+      name: "Itaú Unibanco"
+      organizationId: "b34d324b-a64d-426b-a1c8-d73351336a4c"
+      api:
+        accounts:
+          url: "https://api.itau.com.br/open-banking/accounts/v1"
+        credit-cards:
+          url: "https://api.itau.com.br/open-banking/credit-cards-accounts/v1"
+        investments:
+          url: "https://api.itau.com.br/open-banking/investments/v1"
+
+    SANTANDER:
+      name: "Santander Brasil"
+      organizationId: "24d1a8c7-4213-4040-9861-3835549987f9"
+      api:
+        accounts:
+          url: "https://www.santander.com.br/open-banking/accounts/v1"
+        credit-cards:
+          url: "https://www.santander.com.br/open-banking/credit-cards-accounts/v1"
+        investments:
+          url: "https://www.santander.com.br/open-banking/investments/v1"
+
+    BB:
+      name: "Banco do Brasil"
+      organizationId: "c344521a-5556-4b9c-9c91-e4515bb561c2"
+      api:
+        accounts:
+          url: "https://api.bb.com.br/open-banking/accounts/v1"
+        credit-cards:
+          url: "https://api.bb.com.br/open-banking/credit-cards-accounts/v1"
+        investments:
+          url: "https://api.bb.com.br/open-banking/investments/v1"
+
+    CAIXA:
+      name: "Caixa Econômica Federal"
+      organizationId: "12d48d52-5113-48e0-b364-672101de27c1"
+      api:
+        accounts:
+          url: "https://api.caixa.gov.br/open-banking/accounts/v1"
+        credit-cards:
+          url: "https://api.caixa.gov.br/open-banking/credit-cards-accounts/v1"
+        investments:
+          url: "https://api.caixa.gov.br/open-banking/investments/v1"
+
+    SICREDI:
+      name: "Sicredi"
+      organizationId: "97f8c37c-396a-4131-8325-151048fbe29d"
+      api:
+        accounts:
+          url: "https://api.sicredi.com.br/open-banking/accounts/v1"
+        credit-cards:
+          url: "https://api.sicredi.com.br/open-banking/credit-cards-accounts/v1"
+        investments:
+          url: "https://api.sicredi.com.br/open-banking/investments/v1"
+          
+    # O PicPay não foi incluído pois não consta como "participante" no diretório oficial
+    # de APIs do Open Finance na data de geração do relatório, apenas no de Pagamentos.

@@ -1,0 +1,8 @@
+br/com/PersonalBank/common/config/ApiConfig.class
+br/com/PersonalBank/common/client/ApiClientProvider.class
+br/com/PersonalBank/common/config/InstitutionConfig.class
+br/com/PersonalBank/common/dto/OpenFinanceResponse$Meta.class
+br/com/PersonalBank/common/dto/OpenFinanceResponse.class
+br/com/PersonalBank/common/event/InitialLoadEvent.class
+br/com/PersonalBank/common/dto/OpenFinanceResponse$Links.class
+br/com/PersonalBank/common/config/InstitutionConfigProvider.class

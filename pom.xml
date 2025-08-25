@@ -3,9 +3,11 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelVersion>4.0.0</modelVersion>
+    
     <groupId>br.com.PersonalBank</groupId>
     <artifactId>Personal-Bank-Suite</artifactId>
     <version>1.0.0-SNAPSHOT</version>
+    
     <packaging>pom</packaging>
 
     <properties>
@@ -34,4 +36,5 @@
         <module>ms-credit-cards</module>
         <module>ms-investments</module>
     </modules>
+
 </project>

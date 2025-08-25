@@ -1,0 +1,6 @@
+/workspaces/personalbank-suite/common-library/src/main/java/br/com/PersonalBank/common/config/InstitutionConfig.java
+/workspaces/personalbank-suite/common-library/src/main/java/br/com/PersonalBank/common/config/InstitutionConfigProvider.java
+/workspaces/personalbank-suite/common-library/src/main/java/br/com/PersonalBank/common/client/ApiClientProvider.java
+/workspaces/personalbank-suite/common-library/src/main/java/br/com/PersonalBank/common/config/ApiConfig.java
+/workspaces/personalbank-suite/common-library/src/main/java/br/com/PersonalBank/common/dto/OpenFinanceResponse.java
+/workspaces/personalbank-suite/common-library/src/main/java/br/com/PersonalBank/common/event/InitialLoadEvent.java

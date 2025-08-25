@@ -1,6 +1,35 @@
 # Este Dockerfile é para o seu AMBIENTE DE DESENVOLVIMENTO.
+
 # Ele instala o Java e ferramentas comuns.
+
 FROM mcr.microsoft.com/devcontainers/java:21-bullseye
 
+
+
 # Opcional: Instale o Maven para ter mais controle, embora o template já inclua.
+
 # A imagem base 'devcontainers/java' já vem com SDKMAN!, Java e Maven.
+
+
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends maven && \
+    rm -rf /var/lib/apt/lists/*
+
+
+
+# Copia o nosso script de entrypoint para dentro da imagem
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+
+
+# Dá permissão de execução para o script
+
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+
+
+# Define o nosso script como o ponto de entrada padrão para esta imagem
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
