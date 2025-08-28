@@ -1,178 +1,146 @@
+Com certeza. O `README.md` é um documento vivo e deve refletir a arquitetura final do projeto.
+
+Com a adição do `ms-consent` e a solidificação da nossa estrutura, o fluxo de trabalho e a organização do projeto ficaram muito mais claros. Atualizei o `README.md` para incluir todas essas mudanças.
+
+*(Informações geradas em 28 de Agosto de 2025, 11:06, em Catanduva, SP, Brazil)*
+
+-----
+
 # Personal Bank Suite
 
-*Última atualização: 25 de Agosto de 2025, 15:26 (Catanduva, SP, Brazil)*
+*Última atualização: 28 de Agosto de 2025*
 
 O **Personal Bank Suite** é um ecossistema de microsserviços projetado para agregar e processar dados financeiros de múltiplas instituições através do padrão Open Finance Brasil. A arquitetura é moderna, escalável e orientada a eventos, utilizando Quarkus, Java, Kafka e Docker.
 
 ## Sumário
 
   * [Arquitetura](#arquitetura)
-    * [Visão Geral](#visão-geral)
-    * [Estrutura dos Módulos](#estrutura-dos-módulos)
+      * [Visão Geral](#visão-geral)
+      * [Estrutura dos Módulos](#estrutura-dos-módulos)
   * [Ambiente de Desenvolvimento](#ambiente-de-desenvolvimento)
-    * [Pré-requisitos](#pré-requisitos)
-    * [Fluxo 1 (com VS Code)](#fluxo-1)
-    * [Fluxo 2 (sem VS Code)](#fluxo-2)
-  * [Como Consumir os Microsserviços](#como-consumir-os-microsserviços)
-    * [O Padrão Pub/Sub](#o-padrão-pubsub)
-    * [Exemplo: Carga Inicial](#exemplo-carga-inicial)
-    * [Exemplo: Atualização Contínua](#exemplo-atualização-contínua)
+      * [Pré-requisitos](#pré-requisitos)
+      * [Configuração Inicial](#configuração-inicial)
+      * [Fluxo 1: Com VS Code e Dev Containers (Recomendado)](#fluxo-1-com-vs-code-e-dev-containers-recomendado)
+      * [Fluxo 2: Com Docker Compose Puro (Alternativa)](#fluxo-2-com-docker-compose-puro-alternativa)
+  * [Como Usar a Suite](#como-usar-a-suite)
+      * [O Fluxo de Consentimento](#o-fluxo-de-consentimento)
+      * [A Reação em Cadeia (Pub/Sub)](#a-reação-em-cadeia-pubsub)
   * [Build e Deploy em Produção](#build-e-deploy-em-produção)
-    * [Construindo o Projeto](#construindo-o-projeto)
-    * [Gerando Imagens Docker](#gerando-imagens-docker)
-    * [Hospedagem](#hospedagem)
-
+      * [Construindo o Projeto](#construindo-o-projeto)
+      * [Gerando Imagens Docker](#gerando-imagens-docker)
+      * [Hospedagem](#hospedagem)
 -----
 
 ## Arquitetura
 
 ### Visão Geral
 
-Este projeto é um **sistema distribuído e orientado a eventos**. Os microsserviços são largamente desacoplados e se comunicam de forma assíncrona através de um message broker **Apache Kafka**.
-
-O fluxo principal é:
-
-1.  Um evento é publicado em um tópico do Kafka (ex: "um novo consentimento de usuário foi concedido").
-2.  O microsserviço relevante (ex: `ms-transactions`) consome a mensagem.
-3.  O serviço então busca os dados na API Open Finance do banco correspondente.
-4.  Os dados são processados e armazenados internamente.
+Este projeto é um **sistema distribuído e orientado a eventos**. O `ms-consent` atua como a porta de entrada (entrypoint), orquestrando o fluxo de autorização do usuário. Após um consentimento bem-sucedido, ele dispara eventos via **Apache Kafka**, que são consumidos pelos microsserviços de dados de forma assíncrona e resiliente.
 
 ### Estrutura dos Módulos
 
-O projeto é um **Maven Multi-Módulo**, organizado da seguinte forma:
+O projeto é um **Maven Multi-Módulo**, garantindo consistência e reuso de código.
 
   * **`Personal-Bank-Suite/` (Raiz)**
 
       * Contém o `pom.xml` "Pai" que gerencia as dependências e versões para todos os módulos.
-      * Contém a configuração do ambiente de desenvolvimento (`.devcontainer`, `docker-compose.yml`).
+      * Contém a configuração do ambiente de desenvolvimento (`.devcontainer`, `docker-compose.yml`, etc.).
       * Contém a configuração centralizada das instituições (`config/banks.yml`).
 
   * **`common-library/`**
 
-      * Uma biblioteca compartilhada (`.jar`) que contém todo o código comum.
-      * **Responsabilidades:** Lógica de configuração, criação dinâmica de clientes REST (`ApiClientProvider`), DTOs e eventos genéricos.
+      * Uma biblioteca compartilhada (`.jar`) com todo o código comum.
+      * **Responsabilidades:** Lógica de configuração multi-banco, criação dinâmica de clientes REST (`ApiClientProvider`), DTOs e eventos genéricos.
 
-  * **`ms-transactions/`**
+  * **`ms-consent/`**
 
-      * Microsserviço focado em dados de contas correntes.
-      * **Responsabilidades:** Consumir eventos para buscar e processar o extrato de transações.
+      * O microsserviço orquestrador, responsável pela interação com o usuário.
+      * **Responsabilidades:** Expor a API para o frontend, gerenciar o fluxo de consentimento OAuth 2.0 com os bancos, armazenar tokens de forma segura e **publicar eventos** no Kafka para os outros serviços.
 
-  * **`ms-credit-cards/`**
+  * **`ms-transactions/`**, **`ms-credit-cards/`**, **`ms-investments/`**
 
-      * Microsserviço focado em dados de cartões de crédito.
-      * **Responsabilidades:** Consumir eventos para buscar dados de contas de cartão, faturas e os lançamentos de cada fatura.
-
-  * **`ms-investments/`**
-
-      * Microsserviço focado em dados de investimentos.
-      * **Responsabilidades:** Consumir eventos para buscar a posição consolidada de investimentos (Renda Fixa, Fundos, etc.).
+      * Microsserviços "operários", focados em seus respectivos domínios.
+      * **Responsabilidades:** **Consumir eventos** do Kafka, usar a `common-library` para se conectar à API do banco correto e buscar/processar/armazenar os dados financeiros.
 
 -----
 
 ## Ambiente de Desenvolvimento
 
-O ambiente é padronizado e reproduzível. Recomendamos o uso do **VS Code com Dev Containers** para a experiência mais integrada, mas um fluxo com **Docker Compose puro** também é totalmente suportado.
+O ambiente é padronizado e reproduzível para garantir consistência entre todos os desenvolvedores.
 
 ### Pré-requisitos
-* [Git](https://git-scm.com/)
-* [Docker](https://www.docker.com/) e [Docker Compose](https://docs.docker.com/compose/)
-* Para o fluxo recomendado: [Visual Studio Code](https://code.visualstudio.com/) e a extensão [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
 
----
+  * [Git](https://git-scm.com/)
+  * [Docker Desktop](https://www.docker.com/products/docker-desktop/) (com backend WSL 2 no Windows)
+  * Para o fluxo recomendado: [Visual Studio Code](https://code.visualstudio.com/) e a extensão [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
+
+### Configuração Inicial
+
+Antes de iniciar o ambiente, é necessário criar o arquivo de configuração local.
+
+1.  Na raiz do projeto, crie um arquivo chamado `.env`.
+2.  Adicione as variáveis de ambiente para seu ambiente local, como as credenciais do banco de dados e a localização do Kafka.
+    ```env
+    # .env (Exemplo)
+    DB_USER=personalbank_user
+    DB_PASSWORD=local-super-secret-password
+    DB_URL=jdbc:postgresql://localhost:5432/personalbank_db
+    KAFKA_BROKERS=localhost:9092
+    ```
+
+Este arquivo é ignorado pelo Git e garante que seus segredos locais não sejam versionados.
+
 ### Fluxo 1: Com VS Code e Dev Containers (Recomendado)
 
-1.  **Clone o Repositório:**
+1.  **Clone o Repositório** e abra a pasta raiz (`Personal-Bank-Suite`) no VS Code.
+2.  Uma notificação aparecerá no canto inferior direito. Clique em **"Reopen in Container"**.
+3.  Aguarde. O VS Code irá construir a imagem Docker, iniciar o container e conectar-se a ele. Este processo é automatizado:
+      * O `postCreateCommand` irá executar `mvn clean install` para construir o projeto pela primeira vez.
+      * O `postStartCommand` irá executar `docker-compose up -d` para iniciar a infraestrutura (Kafka).
+4.  Para rodar um serviço, abra um terminal integrado (`Ctrl` + `     ` \`) e execute:
     ```bash
-    git clone <url-do-seu-repositorio> Personal-Bank-Suite
-    cd Personal-Bank-Suite
-    ```
-2.  **Abra no VS Code:**
-    Abra a pasta `Personal-Bank-Suite` no VS Code. Uma notificação aparecerá no canto inferior direito.
-    
-3.  **Inicie o Dev Container:**
-    Clique em **"Reopen in Container"**. O VS Code irá construir a imagem, iniciar o container e conectar-se a ele. Este processo é automatizado:
-    * O `postCreateCommand` irá executar `mvn clean install` para construir o projeto pela primeira vez.
-    * O `postStartCommand` irá executar `docker-compose up -d` para iniciar o Kafka.
-
-4.  **Execute um Microsserviço:**
-    Abra um terminal integrado no VS Code (`Ctrl` + ` ` `). Este terminal já está *dentro* do container.
-    ```bash
-    # Para rodar o serviço de transações
-    cd ms-transactions
+    cd ms-consent
     ./mvnw quarkus:dev
     ```
 
----
-### Fluxo 2: Com Docker Compose Puro (Alternativa via Terminal)
+### Fluxo 2: Com Docker Compose Puro (Alternativa)
 
-Este fluxo é ideal para quem não usa o VS Code ou prefere controlar o ambiente diretamente pelo terminal (seja no Linux ou Windows com PowerShell/CMD).
-
-1.  **Clone o Repositório:**
-    ```bash
-    git clone <url-do-seu-repositorio> Personal-Bank-Suite
-    cd Personal-Bank-Suite
-    ```
-
-2.  **Inicie o Ambiente Completo:**
-    Este comando utiliza dois arquivos: `docker-compose.yml` (para a infraestrutura, como o Kafka) e `docker-compose.dev.yml` (para o container de desenvolvimento).
+1.  **Clone o Repositório.**
+2.  **Inicie o Ambiente Completo:** Na pasta raiz, execute o comando abaixo para subir a infraestrutura e o container de desenvolvimento.
     ```bash
     docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
     ```
-    * A flag `--build` é importante na primeira vez para construir a imagem do zero.
-    * O `entrypoint.sh` configurado no `Dockerfile` irá executar o `mvn clean install` automaticamente apenas na primeira inicialização.
-
 3.  **Acesse o Terminal do Ambiente:**
-    Para obter um shell dentro do container de desenvolvimento, execute:
     ```bash
     docker-compose exec develop bash
     ```
+4.  Uma vez dentro do shell, execute os serviços como no fluxo anterior.
 
-4.  **Execute um Microsserviço:**
-    Uma vez dentro do shell do container, o processo é o mesmo:
-    ```bash
-    # Para rodar o serviço de transações
-    cd ms-transactions
-    ./mvnw quarkus:dev
-    ```
-5.  **Pare o Ambiente:**
-    Quando terminar de trabalhar, para parar e remover todos os containers, execute na raiz do projeto:
-    ```bash
-    docker-compose -f docker-compose.yml -f docker-compose.dev.yml down
-    ```
-## Como Consumir os Microsserviços
+-----
 
-### O Padrão Pub/Sub
+## Como Usar a Suite
 
-Esses serviços não expõem APIs para serem chamados. Para "usá-los", você deve **publicar uma mensagem (um evento) em um tópico do Kafka**.
+A interação com a suite começa sempre pelo `ms-consent`.
 
-### Exemplo: Carga Inicial
+### O Fluxo de Consentimento
 
-Para instruir o `ms-credit-cards` a buscar todos os dados de um novo cartão conectado do Bradesco:
+1.  **Seu Frontend** faz uma chamada `POST` para a API do `ms-consent`:
+      * **Endpoint:** `http://localhost:8083/api/consents/initiate`
+      * **Corpo (Body):**
+        ```json
+        {
+          "institutionKey": "NUBANK"
+        }
+        ```
+2.  **`ms-consent`** responde com uma URL de redirecionamento do banco.
+3.  **Seu Frontend** redireciona o usuário para essa URL para que ele autorize o acesso.
+4.  Após a autorização, o banco redireciona o usuário de volta para o endpoint de `callback` do `ms-consent`, que finaliza o processo.
 
-  * **Tópico Kafka:** `consentimentos.carga-inicial.cartoes`
-  * **Payload da Mensagem (JSON):**
-    ```json
-    {
-      "accountId": "uuid-da-conta-cartao-no-bradesco",
-      "userToken": "token-oauth2-do-usuario",
-      "institutionKey": "BRADESCO"
-    }
-    ```
+### A Reação em Cadeia (Pub/Sub)
 
-### Exemplo: Atualização Contínua
-
-Para instruir o `ms-investments` a verificar apenas a Renda Fixa de um usuário no Itaú:
-
-  * **Tópico Kafka:** `investimentos.atualizacoes.ITAU`
-  * **Payload da Mensagem (JSON):**
-    ```json
-    {
-      "accountId": "uuid-da-conta-investimento-no-itau",
-      "userToken": "token-oauth2-do-usuario",
-      "institutionKey": "ITAU",
-      "type": "BANK_FIXED_INCOME"
-    }
-    ```
+1.  Após um consentimento bem-sucedido, o `ms-consent` publica um evento `InitialLoadEvent` em tópicos do Kafka (ex: `consentimentos.carga-inicial.transacoes`).
+2.  Os microsserviços `ms-transactions`, `ms-credit-cards`, etc., que estão escutando seus respectivos tópicos, são ativados.
+3.  Cada serviço então começa o trabalho de buscar os dados históricos daquele usuário no banco correspondente.
 
 -----
 
@@ -180,7 +148,7 @@ Para instruir o `ms-investments` a verificar apenas a Renda Fixa de um usuário 
 
 ### Construindo o Projeto
 
-Para compilar e empacotar todos os módulos, execute o seguinte comando na raiz do projeto, de dentro do Dev Container:
+Para compilar e empacotar todos os módulos, execute o seguinte comando na raiz do projeto:
 
 ```bash
 mvn clean install -DskipTests
@@ -191,11 +159,8 @@ mvn clean install -DskipTests
 Para gerar uma imagem Docker nativa e otimizada para produção para um microsserviço:
 
 ```bash
-# Navegue para a pasta do microsserviço
-cd ms-transactions
-
-# Execute o build com o perfil 'native'
-./mvnw package -Pnative -Dquarkus.container-image.build=true
+# O comando de build deve ser executado da raiz para ter o contexto completo
+docker build -f ms-consent/Dockerfile -t personal-bank/ms-consent:1.0.0 .
 ```
 
 ### Hospedagem
@@ -203,6 +168,7 @@ cd ms-transactions
 Um ambiente de produção robusto para esta suite exigiria:
 
   * **Message Broker:** Um cluster Kafka gerenciado (ex: Confluent Cloud, Aiven, AWS MSK).
-  * **Orquestrador de Containers:** Kubernetes (AKS, EKS, GKE) ou OpenShift para gerenciar o ciclo de vida dos containers dos microsserviços.
-  * **CI/CD:** Um pipeline automatizado (ex: GitHub Actions, Jenkins) para construir, testar e implantar os serviços.
-  * **Configuração e Segredos:** Um cofre para gerenciar segredos e configurações de produção (ex: HashiCorp Vault, AWS Secrets Manager).
+  * **Base de Dados:** Uma instância de banco de dados gerenciado (ex: AWS RDS, Google Cloud SQL).
+  * **Orquestrador de Containers:** Kubernetes (AKS, EKS, GKE) ou OpenShift.
+  * **Cofre de Segredos:** Um serviço como HashiCorp Vault ou equivalentes na nuvem para gerenciar chaves de criptografia e credenciais de produção.
+  * **CI/CD:** Um pipeline automatizado (ex: GitHub Actions, Jenkins) para orquestrar o build e o deploy.
