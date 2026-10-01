@@ -32,6 +32,8 @@
 
     <modules>
         <module>common-library</module>
+        <module>mock-bank</module>
+        <module>ms-consent</module>
         <module>ms-transactions</module>
         <module>ms-credit-cards</module>
         <module>ms-investments</module>

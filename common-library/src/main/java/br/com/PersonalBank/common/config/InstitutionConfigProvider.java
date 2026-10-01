@@ -6,6 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @ApplicationScoped
 public class InstitutionConfigProvider {
@@ -66,5 +67,20 @@ public class InstitutionConfigProvider {
      */
     public InstitutionConfig getInstitution(String institutionKey) {
         return institutionsMap.get(institutionKey);
+    }
+
+    /**
+     * Retorna a URL configurada para uma família de API de uma instituição.
+     *
+     * @param institutionKey A chave da instituição (ex: "MOCKBANK")
+     * @param apiFamily      A família de API (ex: "accounts", "authorize")
+     * @return A URL, ou vazio se a instituição ou a família não estiverem configuradas.
+     */
+    public Optional<String> getApiUrl(String institutionKey, String apiFamily) {
+        return Optional.ofNullable(getInstitution(institutionKey))
+                .map(institution -> institution.api)
+                .map(api -> api.get(apiFamily))
+                .map(apiConfig -> apiConfig.url)
+                .filter(url -> !url.isBlank());
     }
 }

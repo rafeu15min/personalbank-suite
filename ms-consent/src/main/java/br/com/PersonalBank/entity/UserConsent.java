@@ -44,23 +44,23 @@ public class UserConsent extends PanacheEntityBase {
     public String consentId;
 
     /**
-     * O token de acesso, ARMAZENADO DE FORMA CRIPTOGRAFADA.
-     * A coluna é definida como 'text' para acomodar o tamanho do token criptografado.
+     * O token de acesso, criptografado pelo TokenService.
+     * Fica nulo até o usuário autorizar o consentimento no banco.
      */
-    @Column(nullable = false, columnDefinition = "TEXT", name = "encrypted_access_token")
+    @Column(columnDefinition = "TEXT", name = "encrypted_access_token")
     public String encryptedAccessToken;
 
     /**
-     * O token de atualização, ARMAZENADO DE FORMA CRIPTOGRAFADA.
+     * O token de atualização, criptografado pelo TokenService.
      */
-    @Column(nullable = false, columnDefinition = "TEXT", name = "encrypted_refresh_token")
+    @Column(columnDefinition = "TEXT", name = "encrypted_refresh_token")
     public String encryptedRefreshToken;
 
     /**
      * Data e hora em que o token de acesso atual irá expirar.
      * Usado para saber quando precisamos usar o refresh_token.
      */
-    @Column(nullable = false, name = "access_token_expiry")
+    @Column(name = "access_token_expiry")
     public LocalDateTime accessTokenExpiry;
 
     /**

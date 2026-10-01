@@ -1,4 +1,4 @@
-package br.com.PersonalBank.event;
+package br.com.PersonalBank.entity;
 
 /**
  * Enum que representa as diferentes categorias de produtos de investimento

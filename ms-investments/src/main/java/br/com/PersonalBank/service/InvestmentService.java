@@ -2,13 +2,20 @@ package br.com.PersonalBank.service;
 
 import br.com.PersonalBank.client.InvestmentsApiClient;
 import br.com.PersonalBank.common.client.ApiClientProvider;
+import br.com.PersonalBank.common.client.ConsentTokenClient;
 import br.com.PersonalBank.common.event.InitialLoadEvent;
-import br.com.PersonalBank.event.UpdateInvestmentEvent;
-import io.smallrye.mutiny.Uni;
+import br.com.PersonalBank.dto.investment.BankFixedIncome;
+import br.com.PersonalBank.dto.investment.InvestmentFund;
+import br.com.PersonalBank.dto.investment.VariableIncome;
+import br.com.PersonalBank.entity.InvestmentHolding;
+import br.com.PersonalBank.entity.InvestmentType;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jboss.logging.Logger;
+import java.util.List;
 import java.util.Optional;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class InvestmentService {
@@ -18,50 +25,49 @@ public class InvestmentService {
     @Inject
     ApiClientProvider apiClientProvider;
 
-    public Uni<Void> performInitialLoad(InitialLoadEvent event) {
-        String institutionKey = event.institutionKey();
-        String accountId = event.accountId();
+    @Inject
+    @RestClient
+    ConsentTokenClient consentTokenClient;
 
-        // ** A MUDANÇA PRINCIPAL ACONTECE AQUI **
-        // 1. Pede o cliente e recebe um Optional
+    /**
+     * Busca as posições de renda fixa bancária, fundos e renda variável do
+     * consentimento e grava tudo. As chamadas HTTP acontecem antes, fora da
+     * transação do banco de dados.
+     */
+    public void performInitialLoad(InitialLoadEvent event) {
+        String institutionKey = event.institutionKey();
+        String consentId = event.consentId();
+
         Optional<InvestmentsApiClient> clientOptional = apiClientProvider.buildClient(
                 InvestmentsApiClient.class,
                 institutionKey,
                 "investments");
-
-        // 2. Verifica se o cliente foi criado com sucesso
         if (clientOptional.isEmpty()) {
             LOGGER.warnf(
-                    "API de Investimentos não configurada para a instituição [%s]. A solicitação de carga inicial será ignorada.",
+                    "API de Investimentos não configurada para a instituição [%s]. A carga inicial será ignorada.",
                     institutionKey);
-            // Retorna um Uni completo, finalizando o processamento da mensagem com sucesso.
-            return Uni.createFrom().voidItem();
+            return;
         }
 
-        // 3. Se o cliente existe, o fluxo normal continua
         InvestmentsApiClient client = clientOptional.get();
-        String accessToken = "Bearer " + event.userToken();
-        LOGGER.infof("Iniciando carga inicial de investimentos para conta [%s] no banco [%s]", accountId,
+        String authorization = "Bearer " + consentTokenClient.getAccessToken(consentId);
+        LOGGER.infof("Iniciando carga inicial de investimentos do consentimento [%s] no banco [%s]", consentId,
                 institutionKey);
 
-        return client.getConsolidatedPosition(accountId, accessToken)
-                .onItem().invoke(response -> {
-                    LOGGER.infof("Posição consolidada de investimentos para a conta [%s] obtida com sucesso.",
-                            accountId);
-                    // ... lógica de salvar no banco ...
-                })
-                .onFailure().invoke(failure -> {
-                    LOGGER.errorf(failure, "Falha na carga inicial de investimentos para a conta [%s]", accountId);
-                })
-                .replaceWithVoid();
-    }
+        List<BankFixedIncome> fixedIncomes = client.listBankFixedIncomes(authorization).data;
+        List<InvestmentFund> funds = client.listFunds(authorization).data;
+        List<VariableIncome> variableIncomes = client.listVariableIncomes(authorization).data;
 
-    // O método performUpdate() seguiria a mesma lógica de verificação
-    public Uni<Void> performUpdate(UpdateInvestmentEvent event) {
-        // A mesma lógica de verificação com Optional seria aplicada aqui
-        LOGGER.infof("Solicitação de atualização para [%s] no banco [%s] recebida.", event.type(),
-                event.institutionKey());
-        // ...
-        return Uni.createFrom().voidItem();
+        QuarkusTransaction.requiringNew().run(() -> {
+            fixedIncomes.forEach(item -> InvestmentHolding.upsert(consentId, item.investmentId(),
+                    InvestmentType.BANK_FIXED_INCOME, item.productName(), null, item.grossAmount()));
+            funds.forEach(item -> InvestmentHolding.upsert(consentId, item.investmentId(),
+                    InvestmentType.INVESTMENT_FUNDS, item.fundName(), item.quantity(), item.netAmount()));
+            variableIncomes.forEach(item -> InvestmentHolding.upsert(consentId, item.investmentId(),
+                    InvestmentType.VARIABLE_INCOME, item.ticker(), item.quantity(), item.currentValue()));
+        });
+
+        LOGGER.infof("Carga inicial de investimentos do consentimento [%s] concluída: %d posições.", consentId,
+                fixedIncomes.size() + funds.size() + variableIncomes.size());
     }
 }

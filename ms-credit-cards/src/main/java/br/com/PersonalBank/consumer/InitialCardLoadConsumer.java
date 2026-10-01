@@ -2,7 +2,7 @@ package br.com.PersonalBank.consumer;
 
 import br.com.PersonalBank.common.event.InitialLoadEvent;
 import br.com.PersonalBank.service.CreditCardService;
-import io.smallrye.mutiny.Uni;
+import io.smallrye.reactive.messaging.annotations.Blocking;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
@@ -14,8 +14,9 @@ public class InitialCardLoadConsumer {
     CreditCardService creditCardService;
 
     @Incoming("carga-inicial-cartoes")
-    public Uni<Void> process(InitialLoadEvent event) {
+    @Blocking
+    public void process(InitialLoadEvent event) {
         // Apenas delega o trabalho pesado para a camada de serviço
-        return creditCardService.performInitialLoad(event);
+        creditCardService.performInitialLoad(event);
     }
 }

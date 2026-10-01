@@ -38,6 +38,12 @@
             <artifactId>jakarta.ws.rs-api</artifactId>
         </dependency>
         
+        <!-- Permite que os serviços leiam o config/banks.yml -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-config-yaml</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>

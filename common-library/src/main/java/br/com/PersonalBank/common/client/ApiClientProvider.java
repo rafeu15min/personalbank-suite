@@ -1,6 +1,5 @@
 package br.com.PersonalBank.common.client;
 
-import br.com.PersonalBank.common.config.InstitutionConfig;
 import br.com.PersonalBank.common.config.InstitutionConfigProvider;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -29,26 +28,9 @@ public class ApiClientProvider {
          */
         public <T> Optional<T> buildClient(Class<T> clientInterface, String institutionKey, String apiFamily) {
 
-                // Procura pela configuração da instituição. Se não encontrar, retorna vazio.
-                InstitutionConfig institutionConfig = configProvider.getInstitution(institutionKey);
-                if (institutionConfig == null) {
-                        return Optional.empty();
-                }
-
-                // Procura pela URL específica. Se não encontrar, retorna vazio.
-                String baseUrl = Optional.ofNullable(institutionConfig.api.get(apiFamily))
-                                .map(apiConfig -> apiConfig.url)
-                                .orElse(null);
-
-                if (baseUrl == null || baseUrl.isBlank()) {
-                        return Optional.empty();
-                }
-
-                // Se encontrou a URL, constrói o cliente e o retorna dentro de um Optional.
-                T client = RestClientBuilder.newBuilder()
-                                .baseUri(URI.create(baseUrl))
-                                .build(clientInterface);
-
-                return Optional.of(client);
+                return configProvider.getApiUrl(institutionKey, apiFamily)
+                                .map(baseUrl -> RestClientBuilder.newBuilder()
+                                                .baseUri(URI.create(baseUrl))
+                                                .build(clientInterface));
         }
 }
