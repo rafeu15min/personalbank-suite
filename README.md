@@ -119,10 +119,7 @@ O `.devcontainer` do VS Code também funciona: ele sobe só a infraestrutura
 
 ## Próximos passos
 
-- Integrar um agregador regulado para acessar bancos reais.
-- Renovar o access token com o refresh token (hoje a API interna responde
-  `409` quando o token expira).
-- Autenticação na API interna do `ms-consent` e cadastro de usuários
-  (o `userId` do consentimento ainda é gerado aleatoriamente).
-- APIs de leitura dos dados importados e um frontend.
-- Paginação das APIs do banco e migrações com Flyway.
+O plano está no [ROADMAP.md](ROADMAP.md): primeiro usuários e uma API de
+consulta, depois o controle de entradas e saídas (extrato, resumo por período,
+categorias e lançamentos manuais), e por fim sincronização periódica e acesso a
+bancos reais por um agregador.
